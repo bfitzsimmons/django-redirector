@@ -37,7 +37,7 @@ class RedirectMiddleware(object):
                 return HttpResponseGone()
 
             # Get the top most parent record.
-            if not r.is_root_node():
+            if not r.is_root_node:
                 root_node = r.get_root()
 
             # Get the `url`.
