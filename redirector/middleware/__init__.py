@@ -15,11 +15,11 @@ class RedirectMiddleware(object):
         url_qs = ''
 
         try:
-            r = Redirect.objects.get(site__id__exact=settings.SITE_ID, url=url)
+            r = Redirect.objects.get(site__id__exact=settings.SITE_ID, from_url=url)
         except Redirect.DoesNotExist:
             try:
                 parsed = urlparse.urlparse(url)
-                r = Redirect.objects.get(site__id__exact=settings.SITE_ID, url=parsed.path)
+                r = Redirect.objects.get(site__id__exact=settings.SITE_ID, from_url=parsed.path)
                 url_qs = parsed.query
             except (Redirect.DoesNotExist, AttributeError, TypeError):
                 r = None
@@ -28,20 +28,19 @@ class RedirectMiddleware(object):
             # Try removing the trailing slash.
             try:
                 r = Redirect.objects.get(site__id__exact=settings.SITE_ID,
-                                        url=url[:url.rfind('/')] + url[url.rfind('/') + 1:])
+                                        from_url=url[:url.rfind('/')] + url[url.rfind('/') + 1:])
             except Redirect.DoesNotExist:
                 pass
 
         if r is not None:
-            if not r.parent:
+            if not any([hasattr(r.content_object, 'get_absolute_url'), r.to_url]):
                 return HttpResponseGone()
 
-            # Get the top most parent record.
-            if not r.is_root_node:
-                root_node = r.get_root()
-
-            # Get the `url`.
-            url = root_node.url
+            if not r.to_url:
+                # It's a redirect to a content object.
+                url = r.content_object.get_absolute_url()
+            else:
+                url = r.to_url
 
             np = urlparse.urlparse(url)
             new_qs = ((np.query and url_qs) and '?{0}&{1}'.format(np.query, url_qs)) or \
@@ -52,7 +51,7 @@ class RedirectMiddleware(object):
             if np.netloc:
                 url = '{0}://{1}/{2}{3}'.format(np.scheme, np.netloc, np.path, new_qs)
             else:
-                '{0}{1}'.format(np.path, new_qs)
+                url = '{0}{1}'.format(np.path, new_qs)
 
             return HttpResponsePermanentRedirect(url)
 

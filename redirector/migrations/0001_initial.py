@@ -12,38 +12,41 @@ class Migration(SchemaMigration):
         db.create_table('redirector_redirect', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('site', self.gf('django.db.models.fields.related.ForeignKey')(related_name='redirect_site', to=orm['sites.Site'])),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('parent', self.gf('mptt.fields.TreeForeignKey')(blank=True, related_name='children', null=True, to=orm['redirector.Redirect'])),
-            ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('tree_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('level', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
+            ('from_url', self.gf('django.db.models.fields.CharField')(max_length=200, db_index=True)),
+            ('to_url', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
+            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'], null=True, blank=True)),
+            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True, null=True, blank=True)),
         ))
         db.send_create_signal('redirector', ['Redirect'])
 
-        # Adding unique constraint on 'Redirect', fields ['site', 'url']
-        db.create_unique('redirector_redirect', ['site_id', 'url'])
+        # Adding unique constraint on 'Redirect', fields ['site', 'from_url']
+        db.create_unique('redirector_redirect', ['site_id', 'from_url'])
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Redirect', fields ['site', 'url']
-        db.delete_unique('redirector_redirect', ['site_id', 'url'])
+        # Removing unique constraint on 'Redirect', fields ['site', 'from_url']
+        db.delete_unique('redirector_redirect', ['site_id', 'from_url'])
 
         # Deleting model 'Redirect'
         db.delete_table('redirector_redirect')
 
 
     models = {
-        'redirector.redirect': {
-            'Meta': {'unique_together': "(('site', 'url'),)", 'object_name': 'Redirect'},
+        'contenttypes.contenttype': {
+            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
+            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': "orm['redirector.Redirect']"}),
-            'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        'redirector.redirect': {
+            'Meta': {'unique_together': "(('site', 'from_url'),)", 'object_name': 'Redirect'},
+            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True', 'blank': 'True'}),
+            'from_url': ('django.db.models.fields.CharField', [], {'max_length': '200', 'db_index': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'site': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'redirect_site'", 'to': "orm['sites.Site']"}),
-            'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+            'to_url': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'})
         },
         'sites.site': {
             'Meta': {'ordering': "('domain',)", 'object_name': 'Site', 'db_table': "'django_site'"},
