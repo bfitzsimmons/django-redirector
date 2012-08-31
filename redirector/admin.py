@@ -24,10 +24,20 @@ class RedirectAdmin(GenericAdminModelAdmin):
         ),
     )
 
-    list_display = ('__unicode__', 'content_object', 'to_url', 'site')
+    list_display = ('from_url', 'final_destination', 'site', 'content_object', 'to_url')
     list_filter = ('site', 'content_type')
     search_fields = ('from_url', 'to_url', 'object_id')
     ordering = ('from_url',)
+
+    def final_destination(self, instance):
+        """Show the redirect's final destination URL."""
+        if instance.content_object:
+            html = instance.content_object.get_absolute_url()
+        elif instance.to_url:
+            html = instance.to_url
+        return html
+    final_destination.allow_tags = True
+    final_destination.short_description = _('Final Destination')
 
     # # Generic admin attributes
     # content_type_blacklist = ('auth/group', 'auth/user',)
