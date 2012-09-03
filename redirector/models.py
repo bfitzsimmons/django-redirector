@@ -31,6 +31,6 @@ class Redirect(models.Model):
         """Framework hook for validating an entire model."""
         # Make sure the user has specified either a content object *or* a URL.
         if not any([self.content_object, self.to_url]) or all([self.content_object, self.to_url]):
-            raise ValidationError("""You must either select a content object *or* specify a URL.""")
+            raise ValidationError("""You must *either* select a content object *or* specify a URL.""")
 
         super(Redirect, self).clean()
