@@ -49,7 +49,7 @@ class RedirectMiddleware(object):
                      ''
 
             if np.netloc:
-                url = '{0}://{1}/{2}{3}'.format(np.scheme, np.netloc, np.path, new_qs)
+                url = '{0}://{1}{2}{3}'.format(np.scheme, np.netloc, np.path, new_qs)
             else:
                 url = '{0}{1}'.format(np.path, new_qs)
 
