@@ -34,3 +34,11 @@ class Redirect(models.Model):
             raise ValidationError("""You must *either* select a content object *or* specify a URL.""")
 
         super(Redirect, self).clean()
+
+    def get_content_object_url(self):
+        """This method returns the content object's URL."""
+        if self.content_object:
+            try:
+                return self.content_object.get_absolute_url()
+            except:
+                return

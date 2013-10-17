@@ -31,11 +31,17 @@ class RedirectAdmin(GenericAdminModelAdmin):
 
     def final_destination(self, instance):
         """Show the redirect's final destination URL."""
+        html = None
+
         if instance.content_object:
-            html = instance.content_object.get_absolute_url()
+            html = instance.get_content_object_url()
         elif instance.to_url:
             html = instance.to_url
-        return html
+
+        if html:
+            return html
+        else:
+            return ''
     final_destination.allow_tags = True
     final_destination.short_description = _('Final Destination')
 
